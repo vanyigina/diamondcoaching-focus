@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Focus Compass – Vezetői Stratégiai Fókusz Tervező</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --c-navy: #0B2447;
+    --c-blue: #19376D;
+    --c-teal: #0E7490;
+    --c-gold: #E6B450;
+    --c-cream: #FBF9F1;
+    --c-slate: #596E79;
+    --c-paper: #FFFFFF;
+    --c-alert: #C84B31;
+  }
+  * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .font-display { font-family: 'Playfair Display', Georgia, serif; }
+  body {
+    background: linear-gradient(135deg, #FBF9F1 0%, #F3EFE0 100%);
+    color: var(--c-navy);
+    min-height: 100vh;
+  }
+  .bg-navy { background-color: var(--c-navy); }
+  .bg-blue { background-color: var(--c-blue); }
+  .bg-teal { background-color: var(--c-teal); }
+  .bg-gold { background-color: var(--c-gold); }
+  .bg-cream { background-color: var(--c-cream); }
+  .text-navy { color: var(--c-navy); }
+  .text-teal { color: var(--c-teal); }
+  .text-gold { color: var(--c-gold); }
+  .text-slate { color: var(--c-slate); }
+  .border-navy { border-color: var(--c-navy); }
+  .border-gold { border-color: var(--c-gold); }
+  .btn-primary {
+    background: linear-gradient(135deg, #0B2447 0%, #19376D 100%);
+    color: white; padding: 14px 32px; border-radius: 14px;
+    font-weight: 600; transition: all .25s ease;
+    box-shadow: 0 4px 14px rgba(11, 36, 71, 0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(11, 36, 71, 0.35); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    background: white; color: var(--c-navy);
+    padding: 14px 32px; border-radius: 14px;
+    font-weight: 600; border: 1.5px solid #E6E3D8;
+    transition: all .25s ease;
+  }
+  .btn-secondary:hover { background: var(--c-cream); border-color: var(--c-navy); }
+  .btn-gold {
+    background: linear-gradient(135deg, #E6B450 0%, #D4A343 100%);
+    color: var(--c-navy); padding: 14px 32px; border-radius: 14px;
+    font-weight: 700; box-shadow: 0 4px 14px rgba(230, 180, 80, 0.3);
+    transition: all .25s ease;
+  }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230, 180, 80, 0.45); }
+  .card {
+    background: white; border-radius: 20px; padding: 32px;
+    box-shadow: 0 4px 24px rgba(11, 36, 71, 0.06);
+    border: 1px solid #EDE9D9;
+  }
+  .input, .textarea {
+    background: var(--c-cream); border: 1.5px solid #E6E3D8;
+    border-radius: 12px; padding: 12px 16px; width: 100%;
+    color: var(--c-navy); transition: border-color .2s;
+    font-size: 15px;
+  }
+  .input:focus, .textarea:focus { outline: none; border-color: var(--c-teal); background: white; }
+  .slider {
+    -webkit-appearance: none; width: 100%; height: 8px;
+    border-radius: 999px; background: linear-gradient(90deg, #E6E3D8 0%, #E6E3D8 100%);
+    outline: none;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--c-navy); cursor: pointer;
+    box-shadow: 0 2px 8px rgba(11, 36, 71, 0.3);
+    transition: transform .15s;
+  }
+  .slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .slider::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--c-navy); cursor: pointer; border: none;
+  }
+  .progress-step {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; transition: all .3s;
+    border: 2px solid #E6E3D8; background: white; color: var(--c-slate);
+    flex-shrink: 0;
+    position: relative; z-index: 2;
+  }
+  .progress-step.active {
+    border-color: var(--c-navy); background: var(--c-navy); color: white;
+    box-shadow: 0 4px 14px rgba(11, 36, 71, 0.25);
+  }
+  .progress-step.done {
+    border-color: var(--c-teal); background: var(--c-teal); color: white;
+  }
+  .step-cell {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding-top: 2px;
+  }
+  .step-cell:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: 19px;
+    left: calc(-50% + 18px);
+    width: calc(100% - 36px);
+    height: 2px;
+    background: #E6E3D8;
+    z-index: 1;
+    transition: background .3s ease;
+  }
+  .step-cell.active::before,
+  .step-cell.done::before {
+    background: var(--c-teal);
+  }
+  .step-label {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.25;
+    text-align: center;
+    color: var(--c-slate);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 2px;
+  }
+  .step-label.active { color: var(--c-navy); font-weight: 700; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn .4s ease both; }
+  @keyframes pulseGold { 0%,100% { box-shadow: 0 0 0 0 rgba(230,180,80, .5); } 50% { box-shadow: 0 0 0 12px rgba(230,180,80, 0); } }
+  .pulse-gold { animation: pulseGold 2s infinite; }
+  .quadrant { border-radius: 16px; padding: 20px; min-height: 180px; position: relative; transition: all .2s; }
+  .quadrant-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: .65; }
+  .activity-row { background: var(--c-cream); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; transition: all .2s; border: 1.5px solid transparent; }
+  .activity-row:hover { border-color: #DCD8C5; background: white; }
+  .preset-chip { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 999px; background: var(--c-cream); border: 1.5px solid #E6E3D8; font-size: 14px; font-weight: 600; color: var(--c-navy); cursor: pointer; transition: all .2s; min-height: 40px; }
+  .preset-chip:hover { border-color: #0E7490; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(11,36,71,.08); }
+  .preset-chip.added { background: #DCFCE7; border-color: #166534; color: #166534; }
+  .preset-chip.added:hover { background: #BBF7D0; border-color: #14532D; }
+  .decision-pill { padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: .3px; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; cursor: pointer; border: none; white-space: nowrap; }
+  .decision-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+  .dec-do { background: #DBEAFE; color: #1E40AF; }
+  .dec-delegate { background: #FEF3C7; color: #92400E; }
+  .dec-delete { background: #FEE2E2; color: #991B1B; }
+  .dec-defer { background: #E0E7FF; color: #3730A3; }
+  .dec-ai { background: linear-gradient(135deg, #F9F1FF, #E6D8F7); color: #5B21B6; }
+  @media print { .no-print { display: none !important; } body { background: white !important; } }
+
+  /* Accessibility: keyboard focus visibility */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 3px solid #0E7490;
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+  .progress-step:focus-visible { outline: 3px solid #E6B450; outline-offset: 3px; }
+  .decision-pill:focus-visible { outline: 3px solid #0B2447; outline-offset: 2px; }
+
+  /* Accessibility: respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-gold { animation: none; }
+    .fade-in { animation: none; }
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+  }
+
+  /* Time + Matrix screen two-column layout (shared) */
+  .time-two-col { grid-template-columns: 1fr; }
+  @media (min-width: 900px) {
+    /* Default grid align-items: stretch → left column stretches to match right column height.
+       This lets the sticky element inside stay visible throughout the full page scroll. */
+    .time-two-col { grid-template-columns: 360px 1fr; }
+    .time-chart-sticky {
+      position: sticky;
+      top: 156px;
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+      z-index: 20;
+      padding-right: 4px; /* room for scrollbar */
+      align-self: start; /* prevent stretching within the grid cell */
+    }
+  }
+
+  /* Toast */
+  .toast-container {
+    position: fixed; bottom: 24px; right: 24px; z-index: 60;
+    max-width: 360px; pointer-events: none;
+  }
+  .toast {
+    padding: 14px 20px; border-radius: 14px; margin-top: 10px;
+    color: white; font-weight: 600; font-size: 14px;
+    box-shadow: 0 10px 30px rgba(11,36,71,.22);
+    animation: toastIn .3s ease both;
+    pointer-events: auto;
+  }
+  .toast-success { background: linear-gradient(135deg, #0B2447, #166534); }
+  .toast-error   { background: linear-gradient(135deg, #991B1B, #C84B31); }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(20px); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="pdf-export" style="position:absolute; left:-9999px; top:0; width:800px;"></div>
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+// ====================== CONSTANTS ======================
+const STORAGE_KEY = 'fokusz-kompasz-v2';
+
+const DECISIONS = [
+  { id: 'do',       label: 'DO',              hu: 'Tedd meg magad',   desc: 'Én csinálom, mert csak én tudom, vagy ez stratégiai szintű.',      cls: 'dec-do',       emoji: '✋' },
+  { id: 'delegate', label: 'DELEGATE',        hu: 'Delegálj embernek', desc: 'Átadom egy csapattagnak – megtaníthatom, kiadhatom.',              cls: 'dec-delegate', emoji: '🫱' },
+  { id: 'ai',       label: 'DELEGATE TO AI',  hu: 'Bízd AI-ra',        desc: 'Teljesen vagy részben automatizálható – repetitív, strukturált.', cls: 'dec-ai',       emoji: '🤖' },
+  { id: 'defer',    label: 'DEFER',           hu: 'Halaszd el',        desc: 'Most nem prioritás – pontos későbbi dátumra ütemezem.',            cls: 'dec-defer',    emoji: '⏳' },
+  { id: 'delete',   label: 'DELETE',          hu: 'Töröld',            desc: 'Nincs rá szükség – felesleges szokás vagy örökölt folyamat.',      cls: 'dec-delete',   emoji: '🗑️' },
+];
+
+const SCREENS = [
+  { id: 'welcome',  label: 'Indulás' },
+  { id: 'tasks',    label: 'Feladatok' },
+  { id: 'time',     label: 'Időmérleg' },
+  { id: 'matrix',   label: 'Röntgen' },
+  { id: 'planner',  label: 'Tervező' },
+  { id: 'summary',  label: 'Térkép' },
+];
+
+const PRESET_TASKS = [
+  { cat: '🎯 Ügyfelek & értékesítés', tasks: [
+    'Ügyfélhívások és tárgyalások',
+    'Ajánlatírás',
+    'Demók, bemutatók',
+    'Meglévő ügyfelek kapcsolattartása',
+    'Ügyfélpanasz-kezelés',
+  ]},
+  { cat: '👥 Csapat & HR', tasks: [
+    'Csapatmegbeszélések',
+    '1:1 beszélgetések',
+    'Toborzás és interjúk',
+    'Mentorálás / coaching',
+    'Teljesítmény-értékelés, visszajelzés',
+  ]},
+  { cat: '💼 Pénzügy & operatív', tasks: [
+    'Számlázás',
+    'Adminisztráció, papírmunka',
+    'Pénzügyi riport, cash flow',
+    'Beszállító-menedzsment',
+    'E-mail feldolgozás',
+  ]},
+  { cat: '📣 Marketing & tartalom', tasks: [
+    'Marketing tartalom készítés',
+    'Social media kezelése',
+    'Piackutatás, verseny-elemzés',
+    'Weboldal / blog karbantartás',
+  ]},
+  { cat: '🧭 Stratégia & fejlődés', tasks: [
+    'Stratégiai tervezés',
+    'Olvasás, tanulás',
+    'Hálózatépítés, találkozók',
+    'Új termék / üzleti modell fejlesztése',
+  ]},
+  { cat: '🔥 Tűzoltás & krízis', tasks: [
+    'Váratlan tűzoltás, krízishelyzet',
+    'Hibajavítás, minőségellenőrzés',
+    'Csapat-konfliktus kezelése',
+    'Sürgős ügyfélprobléma',
+  ]},
+];
+
+const COLORS = ['#0B2447', '#19376D', '#19A7CE', '#E6B450', '#C84B31', '#10B981', '#F9B572', '#9333EA', '#166534', '#7C2D12', '#1E40AF', '#92400E', '#5B21B6', '#155E75', '#BE185D'];
+
+// Heti időkeret: a felhasználó a Welcome képernyőn adja meg (20-80 óra).
+// Ha nincs megadva, 56 óra az alapértelmezett (7 nap × 8 óra).
+function getWeeklyCap() { return Number(state.user && state.user.weeklyHours) || 56; }
+
+let state = {
+  screen: 'welcome',
+  user: { name: '', company: '', weeklyHours: 50, date: new Date().toISOString().slice(0, 10) },
+  activities: [],
+  focusAreas: [{ id: 'f1', title: '', why: '' }, { id: 'f2', title: '', why: '' }, { id: 'f3', title: '', why: '' }],
+  commitment: '',
+  reflection: { biggestInsight: '' },
+};
+
+function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){} }
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) state = { ...state, ...JSON.parse(s) };
+  } catch(e) {}
+}
+function reset() {
+  if (confirm('Biztosan mindent törölni szeretnél és újrakezdeni?')) {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+
+// ====================== HELPERS ======================
+const el = (tag, props = {}, ...children) => {
+  const e = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (k === 'className') e.className = v;
+    else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'html') e.innerHTML = v;
+    else if (v === false || v == null) return;
+    else if (v === true) e.setAttribute(k, '');
+    else e.setAttribute(k, v);
+  });
+  children.flat().forEach(c => {
+    if (c == null || c === false) return;
+    if (typeof c === 'string' || typeof c === 'number') e.appendChild(document.createTextNode(c));
+    else e.appendChild(c);
+  });
+  return e;
+};
+function navigate(screen) { state.screen = screen; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function totalHours() { return state.activities.reduce((s, a) => s + (Number(a.hours) || 0), 0); }
+function eisenhowerShare() {
+  const t = totalHours() || 1;
+  const sumH = (fn) => state.activities.filter(fn).reduce((s, a) => s + (Number(a.hours) || 0), 0);
+  return {
+    q1: Math.round(sumH(a => a.urgent && a.important) / t * 100),
+    q2: Math.round(sumH(a => !a.urgent && a.important) / t * 100),
+    q3: Math.round(sumH(a => a.urgent && !a.important) / t * 100),
+    q4: Math.round(sumH(a => !a.urgent && !a.important) / t * 100),
+  };
+}
+
+// ====================== NAVIGATION ======================
+let _canProceedFn = null;
+let _warnMsg = '';
+function refreshNavGate() {
+  const warn = document.getElementById('nav-warn');
+  if (!warn || !_canProceedFn) return;
+  warn.textContent = _canProceedFn() ? '' : ('💡 Tipp: ' + _warnMsg);
+}
+function NavBar(prev, next, canProceed, warnMsg) {
+  _canProceedFn = typeof canProceed === 'function' ? canProceed : () => true;
+  _warnMsg = warnMsg || 'több adattal gazdagabb az eredmény';
+  const canGo = _canProceedFn();
+  return el('div', { className: 'flex justify-between items-center mt-8 no-print gap-4' },
+    prev ? el('button', { className: 'btn-secondary', onclick: () => navigate(prev) }, '← Vissza') : el('div', {}),
+    el('div', { id: 'nav-warn', className: 'text-xs text-center flex-1', style: { color: '#C84B31' } }, canGo ? '' : ('💡 Tipp: ' + _warnMsg)),
+    next ? el('button', { id: 'nav-next', className: 'btn-primary', onclick: () => navigate(next) }, 'Tovább →') : el('div', {}),
+  );
+}
+
+// ====================== TOAST ======================
+function showToast(msg, type = 'success', duration = 3200) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = el('div', { className: `toast toast-${type}`, role: 'status' }, msg);
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'toastOut .3s ease both';
+    setTimeout(() => toast.remove(), 320);
+  }, duration);
+}
+
+// ====================== BUDGET METER ======================
+function BudgetMeter() {
+  const cap = getWeeklyCap();
+  const t = totalHours();
+  const pct = Math.min(100, Math.round(t / cap * 100));
+  const remaining = Math.max(0, cap - t);
+  const warnThreshold = Math.max(5, Math.round(cap * 0.9));
+  const midThreshold = Math.max(1, Math.round(cap * 0.7));
+  let barColor = '#0E7490';
+  let msg = `Heti idő-keret – ${remaining} óra még beállítható.`;
+  if (t >= cap) {
+    barColor = '#C84B31';
+    msg = `⚠️ Elérted a heti ${cap} órás keretet. Új feladathoz a többitől kell elvenned.`;
+  } else if (t >= warnThreshold) {
+    barColor = '#E6B450';
+    msg = `⏰ Közelítesz a kerethez – csak ${remaining} óra van még.`;
+  } else if (t >= midThreshold) {
+    barColor = '#19376D';
+    msg = `${remaining} óra maradt a heti ${cap}-ből.`;
+  }
+  return el('div', { className: 'mb-5' },
+    el('div', { className: 'flex items-baseline justify-between mb-2 flex-wrap gap-2' },
+      el('div', { className: 'flex items-baseline gap-2' },
+        el('span', { className: 'font-display font-bold text-navy', style: { fontSize: '2.25rem', lineHeight: 1 } }, t),
+        el('span', { className: 'text-slate text-base font-semibold' }, `/ ${cap} óra / hét`),
+      ),
+      el('div', { className: 'text-sm font-semibold', style: { color: barColor } }, msg),
+    ),
+    el('div', { className: 'w-full rounded-full overflow-hidden', style: { height: '14px', background: '#E6E3D8' } },
+      el('div', { style: { width: pct + '%', height: '100%', background: barColor, transition: 'all .3s ease', borderRadius: '999px' } }),
+    ),
+  );
+}
+
+// ====================== HEADER + PROGRESS ======================
+function Header() {
+  const idx = SCREENS.findIndex(s => s.id === state.screen);
+  const stepCells = SCREENS.map((s, i) => {
+    const cls = i === idx ? 'active' : (i < idx ? 'done' : '');
+    return el('div', {
+      className: `step-cell ${cls}`,
+      onclick: () => { if (state.user.name) navigate(s.id); },
+      'role': 'button',
+      'aria-label': `${i + 1}. lépés: ${s.label}`,
+      'aria-current': i === idx ? 'step' : null,
+    },
+      el('div', { className: `progress-step ${cls}` }, i < idx ? '✓' : (i + 1)),
+      el('div', { className: `step-label ${i === idx ? 'active' : ''}` }, s.label),
+    );
+  });
+  return el('header', { className: 'no-print bg-white border-b border-gray-200 sticky top-0 z-40', style: { backdropFilter: 'blur(10px)' } },
+    el('div', { className: 'max-w-5xl mx-auto px-6 py-4' },
+      el('div', { className: 'flex items-center justify-between mb-4' },
+        el('div', { className: 'flex items-center gap-3' },
+          el('div', { className: 'w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold', style: { background: 'linear-gradient(135deg, #0B2447, #19376D)' } }, '🧭'),
+          el('div', {},
+            el('div', { className: 'font-display text-xl font-bold text-navy' }, 'Focus Compass'),
+            el('div', { className: 'text-xs text-slate uppercase tracking-wider' }, 'Vezetői Stratégiai Fókusz Tervező'),
+          ),
+        ),
+        state.user.name ? el('button', { className: 'text-sm text-slate hover:text-navy transition-colors', onclick: reset }, '↺ Újrakezd') : null,
+      ),
+      el('div', { className: 'flex items-start', style: { gap: '0' } }, ...stepCells),
+    ),
+  );
+}
+
+// ====================== SCREEN: WELCOME ======================
+function WelcomeScreen() {
+  return el('div', { className: 'max-w-3xl mx-auto px-6 py-10 fade-in' },
+    el('div', { className: 'text-center mb-10' },
+      el('div', { className: 'inline-block mb-6' },
+        el('div', { className: 'w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl pulse-gold', style: { background: 'linear-gradient(135deg, #E6B450, #F9B572)' } }, '🧭'),
+      ),
+      el('h1', { className: 'font-display text-5xl font-bold text-navy mb-4' }, 'Ma szembenézünk.'),
+      el('p', { className: 'text-xl text-slate leading-relaxed max-w-2xl mx-auto' }, 'Egy nap a vezetői működéseddel – őszintén, struktúrával, az AI-era eszközeivel. A végére a kezedben lesz a személyes stratégiai fókusz térképed.'),
+    ),
+    el('div', { className: 'card mb-6' },
+      el('h2', { className: 'text-xl font-bold text-navy mb-4' }, 'Kezdjük el – ki vagy?'),
+      el('div', { className: 'grid md:grid-cols-2 gap-4 mb-6' },
+        el('div', {},
+          el('label', { className: 'block text-sm font-semibold text-navy mb-2' }, 'A neved'),
+          el('input', { className: 'input', type: 'text', placeholder: 'pl. Kovács Anna',
+            value: state.user.name, oninput: (e) => { state.user.name = e.target.value; save(); updateNextBtn(); } }),
+        ),
+        el('div', {},
+          el('label', { className: 'block text-sm font-semibold text-navy mb-2' }, 'A vállalkozásod neve'),
+          el('input', { className: 'input', type: 'text', placeholder: 'pl. Zöld Almafa Kft.',
+            value: state.user.company, oninput: (e) => { state.user.company = e.target.value; save(); } }),
+        ),
+      ),
+
+      // === Heti munkaórák ===
+      el('div', { className: 'mb-6 p-5 rounded-2xl', style: { background: '#FBF9F1', border: '1.5px solid #EDE9D9' } },
+        el('label', { className: 'block text-sm font-semibold text-navy mb-1' }, 'Tipikus héten hány munkaórát dolgozol?'),
+        el('div', { className: 'text-xs text-slate mb-4' }, 'Ezt fogod szétosztani a feladataidra a következő lépésekben. Becsülj – a minta fontosabb, mint a pontosság.'),
+        el('div', { className: 'flex items-center gap-4 mb-2' },
+          el('input', {
+            type: 'range', min: '20', max: '80', step: '1',
+            className: 'slider flex-1', value: state.user.weeklyHours || 50,
+            'aria-label': 'Heti munkaórák',
+            oninput: (e) => {
+              state.user.weeklyHours = Number(e.target.value);
+              const display = document.getElementById('weekly-hours-display');
+              if (display) display.textContent = state.user.weeklyHours + ' óra / hét';
+              save();
+            },
+          }),
+          el('div', { id: 'weekly-hours-display', className: 'font-display font-bold text-navy tabular-nums text-right', style: { fontSize: '1.75rem', lineHeight: 1, minWidth: '130px' } }, (state.user.weeklyHours || 50) + ' óra / hét'),
+        ),
+        el('div', { className: 'flex justify-between text-xs text-slate' },
+          el('span', {}, '20 ó'), el('span', {}, '40 ó'), el('span', {}, '60 ó'), el('span', {}, '80 ó'),
+        ),
+      ),
+      el('div', { className: 'bg-cream rounded-xl p-5 border border-gray-200' },
+        el('div', { className: 'flex gap-3' },
+          el('div', { className: 'text-2xl' }, '💡'),
+          el('div', {},
+            el('div', { className: 'font-semibold text-navy mb-1' }, '5 modulon haladunk át'),
+            el('div', { className: 'text-sm text-slate leading-relaxed' }, '(1) Felsorolod a heti feladataidat. (2) Mindegyikhez csúszkával megadod, mennyi időt szánsz rá. (3) Eisenhower-osztályozás: sürgős? fontos? (4) Fókusz Tervező: 3 stratégiai fókuszod + 5D döntések. (5) Személyre szabott PDF fókusztérkép.'),
+          ),
+        ),
+      ),
+    ),
+
+    // === TUDOMÁNYOS HÁTTÉR + AJÁNLOTT OLVASMÁNYOK ===
+    el('details', { className: 'card mb-6', style: { padding: '20px 24px' } },
+      el('summary', { className: 'flex items-center gap-3 cursor-pointer', style: { listStyle: 'none' } },
+        el('div', { className: 'text-2xl' }, '📚'),
+        el('div', { className: 'flex-1' },
+          el('h3', { className: 'font-bold text-navy text-lg' }, 'Tudományos háttér & ajánlott olvasmányok'),
+          el('div', { className: 'text-xs text-slate' }, 'Kattints a kibontáshoz – miből áll össze a Focus Compass + 7 ajánlott könyv.'),
+        ),
+        el('div', { className: 'text-slate' }, '▾'),
+      ),
+      el('div', { className: 'mt-5 text-sm text-slate leading-relaxed mb-5' },
+        'A Focus Compass az alábbi klasszikus és kortárs szakirodalom szintézise (időgazdálkodás, prioritás-kezelés, vezetői hatékonyság). Ha mélyebben szeretnéd érteni az eszköz mögötti elméletet, ezek a belépési pontok:',
+      ),
+      el('ul', { className: 'space-y-3 text-sm' },
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Dwight D. Eisenhower – alapötlet (1954)'),
+          el('div', { className: 'italic text-slate text-xs' }, 'Beszéd, Northwestern University'),
+          el('div', { className: 'text-xs text-slate mt-1' },
+            el('em', {}, '„What is important is seldom urgent and what is urgent is seldom important."'),
+            ' Ez az eredeti prioritási elv, amiből a mátrix származik.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Stephen R. Covey'),
+          el('div', { className: 'italic text-slate text-xs' }, 'The 7 Habits of Highly Effective People (1989)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, 'A 3. szokás („Put First Things First") formalizálja a 4-kvadránsos sürgős/fontos mátrixot – az Eisenhower Röntgen modul közvetlen forrása.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Peter F. Drucker'),
+          el('div', { className: 'italic text-slate text-xs' }, 'The Effective Executive (1966)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, 'Klasszikus: a vezetői idő mint a legszűkösebb erőforrás. Az 5D-logika egyik gyökere – mit csinál maga a vezető, mit ad át.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Cal Newport'),
+          el('div', { className: 'italic text-slate text-xs' }, 'Deep Work: Rules for Focused Success in a Distracted World (2016)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, 'Elméleti alap: miért visz exponenciálisan tovább a Q2 (stratégiai, nem sürgős) mély munka a felszínes feladatokkal szemben.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'David Allen'),
+          el('div', { className: 'italic text-slate text-xs' }, 'Getting Things Done: The Art of Stress-Free Productivity (2001)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, 'A „Do / Delegate / Defer / Delete" feldolgozási modell eredeti forrása. Az 5D-keret (DO / DELEGATE / AI / DEFER / DELETE) ennek modern kiterjesztése.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Greg McKeown'),
+          el('div', { className: 'italic text-slate text-xs' }, 'Essentialism: The Disciplined Pursuit of Less (2014)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, '„Less but better" – a DELETE és DEFER döntések filozófiai háttere, a stratégiai elengedés szisztematikus megközelítése.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Oliver Burkeman'),
+          el('div', { className: 'italic text-slate text-xs' }, 'Four Thousand Weeks: Time Management for Mortals (2021)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, 'Filozófiai keret: összesen kb. 4000 hetünk van. Miért számít minden negyedévi kapacitás-allokáció – különösen alapítóknak.'),
+        ),
+        el('li', { className: 'pl-4', style: { borderLeft: '3px solid #E6B450' } },
+          el('div', { className: 'font-semibold text-navy' }, 'Ethan Mollick'),
+          el('div', { className: 'italic text-slate text-xs' }, 'Co-Intelligence: Living and Working with AI (2024)'),
+          el('div', { className: 'text-xs text-slate mt-1' }, 'Kortárs munka: mit érdemes AI-ra bízni és mit nem. A „Delegate to AI" ötödik D modern kiterjesztésének forrása.'),
+        ),
+      ),
+      el('div', { className: 'mt-5 p-3 rounded-lg text-xs italic', style: { background: '#FBF9F1', color: '#596E79', border: '1px solid #EDE9D9' } },
+        '💡 A könyvek többsége elérhető magyar fordításban is. Ha csak egyet választasz, a Covey-féle ',
+        el('em', {}, 'The 7 Habits'),
+        ' a leggyorsabb belépő; ha a modern AI-era érdekel, Mollick ',
+        el('em', {}, 'Co-Intelligence'),
+        ' könyve a legjobb ugrás.',
+      ),
+    ),
+
+    el('div', { className: 'flex justify-between items-center' },
+      el('div', { className: 'text-sm text-slate' }, 'Az adataid a böngésződben maradnak. Nem megyünk fel szerverre.'),
+      el('button', { id: 'next-welcome', className: 'btn-primary', disabled: !state.user.name, onclick: () => navigate('tasks') }, 'Kezdjük →'),
+    ),
+  );
+}
+function updateNextBtn() {
+  const btn = document.getElementById('next-welcome');
+  if (btn) btn.disabled = !state.user.name;
+}
+
+// ====================== SCREEN: TASKS (1. modul) ======================
+function TasksScreen() {
+  const root = el('div', { className: 'max-w-4xl mx-auto px-6 py-10 fade-in' });
+  root.appendChild(el('div', { className: 'mb-8' },
+    el('div', { className: 'text-sm font-bold uppercase tracking-widest text-teal mb-2' }, '1. Modul'),
+    el('h1', { className: 'font-display text-4xl font-bold text-navy mb-3' }, 'Mit csinálsz egy héten?'),
+    el('p', { className: 'text-lg text-slate leading-relaxed' }, 'Két módon tudsz feladatokat hozzáadni: kattints a tipikus feladatokra gyorsválasztáshoz VAGY írd be sajátként. Bármikor kombinálhatod a kettőt. Most csak a NEVEK kellenek – az időt és a besorolást a következő lépésekben adjuk meg.'),
+  ));
+
+  // === GYORSVÁLASZTÁS – preset chipek kategóriánként ===
+  const presetCard = el('div', { className: 'card mb-6' });
+  presetCard.appendChild(el('div', { className: 'flex items-center gap-3 mb-2' },
+    el('div', { className: 'text-2xl' }, '⚡'),
+    el('h3', { className: 'font-bold text-navy text-lg' }, 'Gyorsválasztás – kattints a tipikus feladatokra'),
+  ));
+  presetCard.appendChild(el('p', { className: 'text-sm text-slate mb-5' }, 'Minden kattintás hozzáadja vagy leveszi a listáról. Többet is választhatsz minden kategóriából – azt válaszd, ami a TE hetedre jellemző.'));
+
+  PRESET_TASKS.forEach(group => {
+    presetCard.appendChild(el('div', { className: 'text-sm font-bold text-navy mt-5 mb-2' }, group.cat));
+    const chipRow = el('div', { className: 'flex flex-wrap gap-2' });
+    group.tasks.forEach(task => {
+      const added = state.activities.some(a => a.name === task);
+      chipRow.appendChild(el('button', {
+        className: `preset-chip ${added ? 'added' : ''}`,
+        'aria-pressed': added ? 'true' : 'false',
+        onclick: () => {
+          if (added) {
+            const found = state.activities.find(a => a.name === task);
+            // ha már van hozzá adat (óra, besorolás, döntés) - kérdezz rá
+            if (found && (found.hours || found.urgent || found.important || found.decision)) {
+              if (!confirm(`Levenned: "${task}"?\n\nAz ehhez tartozó óra, besorolás és döntés elvész.`)) return;
+            }
+            state.activities = state.activities.filter(a => a.name !== task);
+          } else {
+            state.activities.push({
+              id: 'a' + Date.now() + '-' + Math.round(Math.random() * 1000),
+              name: task,
+              hours: 0, urgent: false, important: false, decision: null,
+            });
+          }
+          save();
+          render();
+        },
+      }, added ? '✓ ' + task : '+ ' + task));
+    });
+    presetCard.appendChild(chipRow);
+  });
+  root.appendChild(presetCard);
+
+  // === SAJÁT FELADAT BEVITEL ===
+  const inputCard = el('div', { className: 'card mb-6' });
+  inputCard.appendChild(el('div', { className: 'flex items-center gap-3 mb-3' },
+    el('div', { className: 'text-2xl' }, '✏️'),
+    el('h3', { className: 'font-bold text-navy text-lg' }, 'Saját feladat hozzáadása'),
+  ));
+  inputCard.appendChild(el('p', { className: 'text-sm text-slate mb-4' }, 'Ha nem találod a listán, írd be szabadon. Annyit adsz hozzá, amennyit akarsz.'));
+  const nameInput = el('input', { className: 'input', type: 'text', placeholder: 'pl. Heti termékfejlesztési meetingem a CTO-val' });
+  const addBtn = el('button', { className: 'btn-gold', onclick: () => {
+    const val = nameInput.value.trim();
+    if (!val) return;
+    if (state.activities.some(a => a.name === val)) {
+      showToast(`"${val}" már a listán van.`, 'error', 2600);
+      return;
+    }
+    state.activities.push({
+      id: 'a' + Date.now(),
+      name: val,
+      hours: 0, urgent: false, important: false, decision: null,
+    });
+    save();
+    nameInput.value = '';
+    render();
+  } }, '+ Hozzáad');
+  nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); nameInput.focus(); } });
+  inputCard.appendChild(el('div', { className: 'flex gap-2 flex-wrap md:flex-nowrap' }, nameInput, addBtn));
+  inputCard.appendChild(el('div', { className: 'text-xs text-slate mt-3' }, 'Tipp: Enter leütésével is hozzáadhatod.'));
+  root.appendChild(inputCard);
+
+  // === AKTUÁLIS LISTA ===
+  if (state.activities.length > 0) {
+    const list = el('div', { className: 'card mb-6' });
+    list.appendChild(el('div', { className: 'flex items-center justify-between mb-4' },
+      el('h3', { className: 'font-bold text-navy text-lg' }, `📋 Feladataid (${state.activities.length})`),
+      state.activities.length >= 3 ? el('span', { className: 'text-xs font-bold px-3 py-1 rounded-full', style: { background: '#DCFCE7', color: '#166534' } }, '✓ Elég a tovább-lépéshez') : null,
+    ));
+    state.activities.forEach((a, i) => {
+      const row = el('div', { className: 'activity-row flex items-center gap-3' });
+      row.appendChild(el('div', { className: 'w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 font-bold', style: { background: '#0B2447', color: 'white' } }, i + 1));
+      row.appendChild(el('div', { className: 'flex-1 font-semibold text-navy' }, a.name));
+      row.appendChild(el('button', {
+        className: 'text-slate hover:text-red-600 text-sm px-3 py-2 rounded-lg',
+        title: 'Törlés',
+        'aria-label': `Törlés: ${a.name}`,
+        onclick: () => {
+          const msg = `Biztosan törlöd: "${a.name}"?\n\nAz ehhez tartozó óra-beállítás, sürgős/fontos besorolás és 5D döntés is elvész.`;
+          if (!confirm(msg)) return;
+          state.activities = state.activities.filter(x => x.id !== a.id); save(); render();
+          showToast(`Törölve: ${a.name}`, 'success', 2400);
+        }
+      }, '🗑'));
+      list.appendChild(row);
+    });
+    root.appendChild(list);
+  } else {
+    root.appendChild(el('div', { className: 'text-center py-6 text-slate' }, 'Kattints a tipikus feladatokra fentebb, vagy írj be saját feladatokat.'));
+  }
+
+  root.appendChild(NavBar('welcome', 'time', () => state.activities.length >= 3, 'Minimum 3 feladat javasolt, optimum 8–15'));
+  return root;
+}
+
+// ====================== SCREEN: TIME (2. modul) ======================
+function TimeScreen() {
+  const root = el('div', { className: 'max-w-6xl mx-auto px-6 py-10 fade-in' });
+  root.appendChild(el('div', { className: 'mb-6' },
+    el('div', { className: 'text-sm font-bold uppercase tracking-widest text-teal mb-2' }, '2. Modul'),
+    el('h1', { className: 'font-display text-4xl font-bold text-navy mb-3' }, 'Időmérleg'),
+    el('p', { className: 'text-lg text-slate leading-relaxed' },
+      'Minden feladathoz állítsd be a csúszkával (jobb oldalon), hogy egy TIPIKUS héten hány órát töltesz el vele. A bal oldalon élőben látod, hogyan telik a heti időkereted (',
+      el('b', {}, getWeeklyCap() + ' óra'),
+      '). Becsülj – a minta fontosabb, mint a pontosság.',
+    ),
+  ));
+
+  if (state.activities.length === 0) {
+    root.appendChild(el('div', { className: 'card text-center py-8' },
+      el('div', { className: 'text-slate mb-4' }, 'Előbb sorold fel a feladataidat az 1. modulban!'),
+      el('button', { className: 'btn-primary', onclick: () => navigate('tasks') }, '← Vissza a feladatlistához'),
+    ));
+    return root;
+  }
+
+  // === KÉTOSZLOPOS LAYOUT: BAL = chart (sticky), JOBB = csúszkák ===
+  const twoCol = el('div', { className: 'grid gap-6 mb-6 time-two-col' });
+
+  // BAL OSZLOP: sticky chart card
+  const leftCol = el('div', {});
+  const chartCard = el('div', { className: 'card bg-cream time-chart-sticky' });
+  chartCard.appendChild(el('div', { id: 'budget-meter-container' }));
+  chartCard.appendChild(el('div', { className: 'border-t pt-4 mt-1', style: { borderColor: '#EDE9D9' } },
+    el('div', { id: 'time-chart-svg' }),
+  ));
+  chartCard.appendChild(el('div', { className: 'border-t pt-4 mt-4', style: { borderColor: '#EDE9D9' } },
+    el('div', { className: 'text-xs font-bold uppercase tracking-widest text-slate mb-2' }, 'Feladatok'),
+    el('div', { id: 'time-chart-insights' }),
+  ));
+  leftCol.appendChild(chartCard);
+  twoCol.appendChild(leftCol);
+
+  // JOBB OSZLOP: csúszkák
+  const rightCol = el('div', {});
+  const slidersWrap = el('div', { className: 'grid gap-4' });
+  state.activities.forEach((a, i) => {
+    const row = el('div', { className: 'card', style: { padding: '18px 20px' } });
+    const hoursEl = el('span', { className: 'font-bold text-2xl text-navy tabular-nums' }, (a.hours || 0) + ' ó');
+    const capHintEl = el('span', { className: 'text-xs font-semibold ml-2', style: { color: '#C84B31', display: 'none' } }, '· keret betelt');
+    row.appendChild(el('div', { className: 'flex items-center justify-between mb-3 gap-4' },
+      el('div', { className: 'flex items-center gap-3 flex-1 min-w-0' },
+        el('div', { className: 'w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 font-bold', style: { background: COLORS[i % COLORS.length], color: 'white' } }, i + 1),
+        el('div', { className: 'font-semibold text-navy truncate' }, a.name),
+      ),
+      el('div', { className: 'flex items-baseline flex-shrink-0' }, hoursEl, capHintEl),
+    ));
+    const slider = el('input', {
+      type: 'range', min: '0', max: '40', step: '0.5',
+      className: 'slider', value: a.hours || 0,
+      'aria-label': `${a.name} – heti óraszám`,
+      oninput: (e) => {
+        let newVal = Number(e.target.value);
+        const cap = getWeeklyCap();
+        const otherHours = totalHours() - (a.hours || 0);
+        const maxAllowed = Math.min(40, cap - otherHours);
+        let clamped = false;
+        if (newVal > maxAllowed) {
+          newVal = Math.max(0, maxAllowed);
+          e.target.value = newVal;
+          clamped = true;
+        }
+        a.hours = newVal;
+        hoursEl.textContent = newVal + ' ó';
+        capHintEl.style.display = clamped ? 'inline' : 'none';
+        save();
+        updateTimeChart();
+        refreshNavGate();
+      },
+    });
+    row.appendChild(slider);
+    row.appendChild(el('div', { className: 'flex justify-between text-xs text-slate mt-2' }, el('span', {}, '0'), el('span', {}, '40 ó (csúszka max)')));
+    slidersWrap.appendChild(row);
+  });
+  rightCol.appendChild(slidersWrap);
+  twoCol.appendChild(rightCol);
+
+  root.appendChild(twoCol);
+
+  setTimeout(updateTimeChart, 0);
+  root.appendChild(NavBar('tasks', 'matrix', () => totalHours() >= 5, 'Állíts be óraszámokat – minimum 5 óra összesen'));
+  return root;
+}
+function drawPieActivities(container) {
+  const data = state.activities.filter(a => (a.hours || 0) > 0);
+  const total = data.reduce((s, b) => s + (Number(b.hours) || 0), 0);
+  if (total === 0) {
+    container.innerHTML = '<div class="text-center py-10 text-slate text-xs">Húzd a csúszkákat – a diagram élőben változik.</div>';
+    return;
+  }
+  const cx = 150, cy = 150, r = 110;
+  let a = -Math.PI / 2;
+  let svg = `<svg viewBox="0 0 300 300" style="width:100%;max-width:180px;display:block;margin:0 auto">`;
+  data.forEach((d) => {
+    const idx = state.activities.findIndex(x => x.id === d.id);
+    const color = COLORS[idx % COLORS.length];
+    const slice = ((d.hours || 0) / total) * Math.PI * 2;
+    const x1 = cx + r * Math.cos(a), y1 = cy + r * Math.sin(a);
+    a += slice;
+    const x2 = cx + r * Math.cos(a), y2 = cy + r * Math.sin(a);
+    const large = slice > Math.PI ? 1 : 0;
+    svg += `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z" fill="${color}" opacity="0.88" stroke="white" stroke-width="2"/>`;
+  });
+  svg += `<circle cx="${cx}" cy="${cy}" r="55" fill="white"/>`;
+  svg += `<text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="30" font-weight="700" fill="#0B2447">${total}</text>`;
+  svg += `<text x="${cx}" y="${cy + 22}" text-anchor="middle" font-size="12" fill="#596E79">óra / hét</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+function updateTimeChart() {
+  // Budget meter
+  const meterC = document.getElementById('budget-meter-container');
+  if (meterC) {
+    meterC.innerHTML = '';
+    meterC.appendChild(BudgetMeter());
+  }
+  const svg = document.getElementById('time-chart-svg');
+  const insights = document.getElementById('time-chart-insights');
+  if (!svg || !insights) return;
+  drawPieActivities(svg);
+  const legend = state.activities.filter(a => (a.hours || 0) > 0).map((a) => {
+    const idx = state.activities.findIndex(x => x.id === a.id);
+    return `
+      <div class="flex items-center gap-2 text-sm">
+        <div style="width:12px;height:12px;border-radius:3px;background:${COLORS[idx % COLORS.length]};flex-shrink:0"></div>
+        <span class="text-navy truncate">${a.name}</span>
+        <span class="ml-auto text-slate font-semibold">${a.hours}ó</span>
+      </div>`;
+  }).join('');
+  insights.innerHTML = `<div class="grid gap-2">${legend || '<div class="text-sm text-slate">Még nincs idő beállítva – húzz csúszkákat.</div>'}</div>`;
+}
+
+// ====================== SCREEN: MATRIX / RÖNTGEN (3. modul) ======================
+function MatrixScreen() {
+  const root = el('div', { className: 'max-w-6xl mx-auto px-6 py-10 fade-in' });
+  root.appendChild(el('div', { className: 'mb-6' },
+    el('div', { className: 'text-sm font-bold uppercase tracking-widest text-teal mb-2' }, '3. Modul'),
+    el('h1', { className: 'font-display text-4xl font-bold text-navy mb-3' }, 'Eisenhower Röntgen'),
+    el('p', { className: 'text-lg text-slate leading-relaxed' }, 'Olvasd el alaposan a definíciókat – a legtöbb vezető MINDENT sürgősnek és fontosnak jelöl. Ne ess ebbe a csapdába.'),
+  ));
+
+  if (state.activities.length === 0) {
+    root.appendChild(el('div', { className: 'card text-center py-8' },
+      el('div', { className: 'text-slate mb-4' }, 'Előbb sorold fel a feladataidat az 1. modulban!'),
+      el('button', { className: 'btn-primary', onclick: () => navigate('tasks') }, '← Vissza a feladatlistához'),
+    ));
+    return root;
+  }
+
+  // === KÉTOSZLOPOS LAYOUT ===
+  const twoCol = el('div', { className: 'grid gap-6 mb-6 time-two-col' });
+
+  // === BAL OSZLOP: Sticky – definíciók + csapda ===
+  const leftCol = el('div', { className: 'time-chart-sticky' });
+
+  // SÜRGŐS definíció
+  leftCol.appendChild(el('div', { className: 'card mb-4', style: { borderLeft: '5px solid #991B1B', padding: '20px' } },
+    el('div', { className: 'flex items-center gap-3 mb-3' },
+      el('div', { className: 'text-3xl' }, '🔥'),
+      el('div', {},
+        el('div', { className: 'text-xs font-bold tracking-widest', style: { color: '#991B1B' } }, 'DEFINÍCIÓ'),
+        el('h3', { className: 'font-bold text-xl', style: { color: '#991B1B' } }, 'SÜRGŐS'),
+      ),
+    ),
+    el('div', { className: 'text-sm text-navy mb-3 leading-relaxed' },
+      el('b', {}, 'Konkrét, közeli határideje van. '),
+      'Ha nem csinálom meg most, valami rossz történik (ügyfél, csapat, határidő, krízis). Aktív elmaradás, reklamáció vagy pénzügyi következmény.',
+    ),
+    el('div', { className: 'text-sm italic mt-3 pt-3 border-t', style: { color: '#596E79' } },
+      el('b', { style: { color: '#991B1B' } }, 'NEM sürgős: '),
+      'amit én szeretnék most csinálni, de lehet holnap is. Nincs konkrét deadline, nem vár rá senki konkrétan.',
+    ),
+  ));
+
+  // FONTOS definíció
+  leftCol.appendChild(el('div', { className: 'card mb-4', style: { borderLeft: '5px solid #1E40AF', padding: '20px' } },
+    el('div', { className: 'flex items-center gap-3 mb-3' },
+      el('div', { className: 'text-3xl' }, '🧭'),
+      el('div', {},
+        el('div', { className: 'text-xs font-bold tracking-widest', style: { color: '#1E40AF' } }, 'DEFINÍCIÓ'),
+        el('h3', { className: 'font-bold text-xl', style: { color: '#1E40AF' } }, 'FONTOS'),
+      ),
+    ),
+    el('div', { className: 'text-sm text-navy mb-3 leading-relaxed' },
+      el('b', {}, 'Stratégiai hatása van. '),
+      'A cég hosszú távú céljaihoz, növekedéséhez, tudás- és kapcsolatépítéshez járul hozzá. Ha nem csinálom, a cég hosszú távon stagnál.',
+    ),
+    el('div', { className: 'text-sm italic mt-3 pt-3 border-t', style: { color: '#596E79' } },
+      el('b', { style: { color: '#1E40AF' } }, 'NEM fontos: '),
+      'rutin, adminisztráció, mások prioritásai. Nem hoz hosszú távú értéket – legfeljebb fenntart vagy kiszolgál.',
+    ),
+  ));
+
+  // Csapda-figyelmeztetés
+  leftCol.appendChild(el('div', { className: 'rounded-2xl p-4', style: { background: '#FEF3C7', border: '1px solid #F59E0B' } },
+    el('div', { className: 'flex gap-3' },
+      el('div', { className: 'text-2xl flex-shrink-0' }, '⚠️'),
+      el('div', {},
+        el('div', { className: 'font-bold mb-1', style: { color: '#78350F' } }, 'A csapda, amibe NE ess bele'),
+        el('div', { className: 'text-sm leading-relaxed', style: { color: '#78350F' } },
+          'A legtöbb vezető ösztönből MINDENT sürgősnek és fontosnak jelöl. Ez a röntgen csak akkor működik, ha kemény vagy magaddal. Sok feladat ',
+          el('b', {}, 'CSAK sürgős'), ' (pl. mások kérései, tűzoltás). Sok feladat ',
+          el('b', {}, 'CSAK fontos'), ' (pl. stratégia, tanulás – soha nem sürgős).',
+        ),
+      ),
+    ),
+  ));
+
+  twoCol.appendChild(leftCol);
+
+  // === JOBB OSZLOP: Feladatok osztályozása + kvadránsok + insight ===
+  const rightCol = el('div', {});
+
+  // Osztályozás feladatonként
+  const listCard = el('div', { className: 'card mb-6' });
+  listCard.appendChild(el('h3', { className: 'font-bold text-navy mb-4 text-lg' }, '🎯 Osztályozd minden feladatot'));
+  state.activities.forEach((a, i) => {
+    let rowBg = '#FBF9F1', rowBorder = 'transparent', qLabel = null;
+    if (a.urgent && a.important)        { rowBg = '#FEE2E2'; rowBorder = '#FCA5A5'; qLabel = { txt: 'Q1 Tüzek',    col: '#991B1B' }; }
+    else if (!a.urgent && a.important)  { rowBg = '#DCFCE7'; rowBorder = '#86EFAC'; qLabel = { txt: 'Q2 Stratégia', col: '#166534' }; }
+    else if (a.urgent && !a.important)  { rowBg = '#FEF3C7'; rowBorder = '#FCD34D'; qLabel = { txt: 'Q3 Zaj',       col: '#92400E' }; }
+
+    const row = el('div', {
+      className: 'activity-row flex items-center gap-3 flex-wrap',
+      style: { background: rowBg, borderColor: rowBorder, borderWidth: '1.5px', borderStyle: 'solid', transition: 'all .25s ease' },
+    });
+    row.appendChild(el('div', { className: 'w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 font-bold', style: { background: '#0B2447', color: 'white' } }, i + 1));
+    const meta = el('div', { className: 'flex-1 min-w-0', style: { minWidth: '160px' } },
+      el('div', { className: 'font-semibold text-navy' }, a.name),
+      el('div', { className: 'text-xs text-slate' }, `${a.hours || 0} óra / hét`),
+    );
+    if (qLabel) {
+      meta.appendChild(el('div', {
+        className: 'text-xs font-bold uppercase tracking-widest mt-1 inline-block px-2 py-0.5 rounded',
+        style: { background: 'rgba(255,255,255,.7)', color: qLabel.col },
+      }, '→ ' + qLabel.txt));
+    }
+    row.appendChild(meta);
+    row.appendChild(el('label', {
+      className: 'flex items-center gap-2 text-sm font-semibold cursor-pointer px-3 py-2 rounded-lg transition-all',
+      style: { background: a.urgent ? '#FFFFFF' : '#F3F4F6', color: a.urgent ? '#991B1B' : '#596E79', border: a.urgent ? '1.5px solid #991B1B' : '1.5px solid transparent', minHeight: '40px' },
+    },
+      el('input', { type: 'checkbox', checked: a.urgent, onchange: (e) => { a.urgent = e.target.checked; save(); render(); }, className: 'w-4 h-4 accent-red-600' }),
+      el('span', { 'aria-hidden': 'true' }, '🔥'), ' Sürgős',
+    ));
+    row.appendChild(el('label', {
+      className: 'flex items-center gap-2 text-sm font-semibold cursor-pointer px-3 py-2 rounded-lg transition-all',
+      style: { background: a.important ? '#FFFFFF' : '#F3F4F6', color: a.important ? '#1E40AF' : '#596E79', border: a.important ? '1.5px solid #1E40AF' : '1.5px solid transparent', minHeight: '40px' },
+    },
+      el('input', { type: 'checkbox', checked: a.important, onchange: (e) => { a.important = e.target.checked; save(); render(); }, className: 'w-4 h-4 accent-blue-700' }),
+      el('span', { 'aria-hidden': 'true' }, '🧭'), ' Fontos',
+    ));
+    listCard.appendChild(row);
+  });
+  rightCol.appendChild(listCard);
+
+  // Kvadránsok
+  const matrix = el('div', { className: 'grid grid-cols-2 gap-3 mb-6' });
+  const quads = [
+    { urgent: true,  important: true,  label: 'Q1 – TÜZEK',       bg: '#FEE2E2', text: '#991B1B', tip: 'Itt élsz? Ez az alapítói csapda jele.' },
+    { urgent: false, important: true,  label: 'Q2 – STRATÉGIA',   bg: '#DCFCE7', text: '#166534', tip: 'Itt születik a növekedés. Ide kell jutnod.' },
+    { urgent: true,  important: false, label: 'Q3 – ZAJ',         bg: '#FEF3C7', text: '#92400E', tip: 'Mások prioritásai. Delegálható.' },
+    { urgent: false, important: false, label: 'Q4 – IDŐVESZTÉS',  bg: '#F3F4F6', text: '#4B5563', tip: 'Felesleges zaj. Töröld.' },
+  ];
+  quads.forEach(q => {
+    const items = state.activities.filter(a => a.urgent === q.urgent && a.important === q.important);
+    const totalH = items.reduce((s, a) => s + (Number(a.hours) || 0), 0);
+    const box = el('div', { className: 'quadrant', style: { background: q.bg } });
+    box.appendChild(el('div', { className: 'flex items-center justify-between mb-2' },
+      el('div', { className: 'quadrant-label', style: { color: q.text } }, q.label),
+      el('div', { className: 'text-xs font-bold', style: { color: q.text } }, `${totalH} ó/hét`),
+    ));
+    box.appendChild(el('div', { className: 'text-xs italic mb-3', style: { color: q.text, opacity: .75 } }, q.tip));
+    if (items.length === 0) {
+      box.appendChild(el('div', { className: 'text-sm text-center py-6 opacity-50', style: { color: q.text } }, '— üres —'));
+    } else {
+      items.forEach(a => {
+        box.appendChild(el('div', { className: 'rounded-lg px-3 py-2 mb-2 text-sm font-medium', style: { background: 'rgba(255,255,255,.7)', color: q.text } },
+          a.name + ` (${a.hours || 0}ó)`));
+      });
+    }
+    matrix.appendChild(box);
+  });
+  rightCol.appendChild(matrix);
+
+  // Összegző insight
+  const classified = state.activities.filter(a => a.urgent || a.important);
+  if (classified.length > 0) {
+    const eh = eisenhowerShare();
+    rightCol.appendChild(el('div', { className: 'rounded-2xl p-5', style: { background: 'linear-gradient(135deg, #0B2447, #19376D)', color: 'white' } },
+      el('h3', { className: 'font-bold mb-2', style: { color: '#E6B450' } }, '🎯 Mit mutat a röntgen?'),
+      el('div', { className: 'text-sm leading-relaxed' },
+        `A stratégiai negyed (Q2) jelenleg az óráid ${eh.q2}%-a. `,
+        eh.q2 < 20 ? 'Ez alacsony – a délutáni munkánk célja, hogy 30% fölé emeljük azzal, hogy a Q1/Q3-ból elengedünk dolgokat.' :
+        eh.q2 < 40 ? 'Közepes – van hova fejlődni.' :
+                     'Ez erős arány. A feladatunk most a megőrzés és finomhangolás.',
+      ),
+    ));
+  }
+
+  twoCol.appendChild(rightCol);
+  root.appendChild(twoCol);
+
+  root.appendChild(NavBar('time', 'planner', () => state.activities.some(a => a.urgent || a.important), 'Jelölj meg legalább egy feladatot sürgősnek vagy fontosnak'));
+  return root;
+}
+
+// ====================== SCREEN: PLANNER (4. modul) ======================
+function PlannerScreen() {
+  const root = el('div', { className: 'max-w-5xl mx-auto px-6 py-10 fade-in' });
+  root.appendChild(el('div', { className: 'mb-8' },
+    el('div', { className: 'text-sm font-bold uppercase tracking-widest text-teal mb-2' }, '4. Modul'),
+    el('h1', { className: 'font-display text-4xl font-bold text-navy mb-3' }, 'Fókusz Tervező'),
+    el('p', { className: 'text-lg text-slate leading-relaxed' }, 'Két lépés: (a) a következő 90 napra TOP 3 stratégiai fókuszod, (b) minden feladatodhoz 5D döntés: melyiket csinálod, melyiket adod át embernek/AI-nak, melyiket halasztod vagy törlöd.'),
+  ));
+
+  // Focus areas
+  const focusCard = el('div', { className: 'card mb-6' });
+  focusCard.appendChild(el('h3', { className: 'font-bold text-navy mb-2 text-lg' }, '⭐ Top 3 stratégiai fókuszod – következő 90 nap'));
+  focusCard.appendChild(el('p', { className: 'text-sm text-slate mb-5' }, 'Ezek olyan területek, amiken ha ma elkezdesz dolgozni, 90 nap múlva látható eredmény lesz. NEM tűzoltás, NEM napi operatív. Tipikusan Q2-es témák.'));
+  state.focusAreas.forEach((f, i) => {
+    const block = el('div', { className: 'mb-4 pb-4 border-b border-gray-100 last:border-0' });
+    block.appendChild(el('div', { className: 'flex items-center gap-2 mb-2' },
+      el('div', { className: 'w-8 h-8 rounded-lg font-bold flex items-center justify-center', style: { background: '#E6B450', color: '#0B2447' } }, i + 1),
+      el('div', { className: 'font-semibold text-navy' }, 'Fókuszterület ' + (i + 1)),
+    ));
+    block.appendChild(el('input', {
+      className: 'input mb-2', type: 'text', placeholder: 'pl. Értékesítési folyamat rendszerezése és mérése',
+      value: f.title, oninput: (e) => { f.title = e.target.value; save(); refreshNavGate(); },
+    }));
+    block.appendChild(el('textarea', {
+      className: 'textarea', rows: '2', placeholder: 'Miért ez a legfontosabb? Mi lesz más 90 nap múlva, ha most megkezded?',
+      oninput: (e) => { f.why = e.target.value; save(); },
+    }, f.why));
+    focusCard.appendChild(block);
+  });
+  root.appendChild(focusCard);
+
+  // === 5D DÖNTÉSI KERETEK – MAGYAR MAGYARÁZATTAL ===
+  const decCard = el('div', { className: 'card mb-6' });
+  decCard.appendChild(el('h3', { className: 'font-bold text-navy mb-2 text-lg' }, '🎚️ 5D döntések minden feladatra'));
+  decCard.appendChild(el('p', { className: 'text-sm text-slate mb-5' }, 'Kattints minden feladat melletti pilulára: mit csinálsz vele a következő negyedévben?'));
+
+  const legend = el('div', { className: 'grid md:grid-cols-5 gap-3 mb-6' });
+  DECISIONS.forEach(d => {
+    legend.appendChild(el('div', { className: 'rounded-xl p-3 text-xs', style: { background: '#FBF9F1', border: '1px solid #EDE9D9' } },
+      el('div', { className: `decision-pill ${d.cls} mb-2` }, `${d.emoji} ${d.label}`),
+      el('div', { className: 'font-bold text-navy mb-1' }, d.hu),
+      el('div', { className: 'text-slate leading-snug' }, d.desc),
+    ));
+  });
+  decCard.appendChild(legend);
+
+  if (state.activities.length === 0) {
+    decCard.appendChild(el('div', { className: 'text-center py-8 text-slate' }, 'Előbb vigyél fel feladatokat az 1. modulban!'));
+  } else {
+    state.activities.forEach((a, i) => {
+      const row = el('div', { className: 'activity-row mb-2' });
+      row.appendChild(el('div', { className: 'flex items-start justify-between mb-2 gap-3' },
+        el('div', { className: 'flex items-start gap-3 flex-1' },
+          el('div', { className: 'w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 font-bold', style: { background: '#0B2447', color: 'white' } }, i + 1),
+          el('div', { className: 'flex-1' },
+            el('div', { className: 'font-semibold text-navy' }, a.name),
+            el('div', { className: 'text-xs text-slate mt-0.5' },
+              `${a.hours || 0} ó/hét · ${a.urgent ? '🔥 sürgős' : 'nem sürgős'} · ${a.important ? '🧭 fontos' : 'nem fontos'}`),
+          ),
+        ),
+      ));
+      const btns = el('div', { className: 'flex gap-2 flex-wrap' });
+      DECISIONS.forEach(d => {
+        const active = a.decision === d.id;
+        btns.appendChild(el('button', {
+          className: `decision-pill ${d.cls} transition-all ${active ? 'ring-2 ring-offset-1 ring-navy scale-105' : 'opacity-60 hover:opacity-100'}`,
+          title: d.desc,
+          onclick: () => { a.decision = active ? null : d.id; save(); render(); },
+        }, `${d.emoji} ${d.label} (${d.hu})`));
+      });
+      row.appendChild(btns);
+      decCard.appendChild(row);
+    });
+  }
+  root.appendChild(decCard);
+
+  // Summary stats
+  const doneCount = state.activities.filter(a => a.decision).length;
+  const hoursFreed = state.activities.filter(a => ['delegate', 'ai', 'delete', 'defer'].includes(a.decision))
+    .reduce((s, a) => s + (Number(a.hours) || 0), 0);
+  if (state.activities.length > 0) {
+    root.appendChild(el('div', { className: 'mb-6 rounded-2xl p-6', style: { background: 'linear-gradient(135deg, #0B2447, #19376D)', color: 'white' } },
+      el('h3', { className: 'font-bold mb-3', style: { color: '#E6B450' } }, '⚡ Felszabaduló kapacitás'),
+      el('div', { className: 'grid grid-cols-3 gap-4 text-center' },
+        el('div', {}, el('div', { className: 'text-3xl font-bold' }, `${doneCount}/${state.activities.length}`), el('div', { className: 'text-xs opacity-80 mt-1' }, 'döntés meghozva')),
+        el('div', {}, el('div', { className: 'text-3xl font-bold', style: { color: '#E6B450' } }, `${hoursFreed}ó`), el('div', { className: 'text-xs opacity-80 mt-1' }, 'potenciális felszabadulás hetente')),
+        el('div', {}, el('div', { className: 'text-3xl font-bold' }, `${Math.round(hoursFreed * 52 / 40)}`), el('div', { className: 'text-xs opacity-80 mt-1' }, 'munkahét évente')),
+      ),
+    ));
+  }
+
+  root.appendChild(NavBar('matrix', 'summary', () => state.focusAreas.filter(f => f.title.trim()).length >= 1, 'Adj meg legalább 1 stratégiai fókuszterületet'));
+  return root;
+}
+
+// ====================== SCREEN: SUMMARY (5. modul) ======================
+function SummaryScreen() {
+  const root = el('div', { className: 'max-w-4xl mx-auto px-6 py-10 fade-in' });
+  root.appendChild(el('div', { className: 'mb-8' },
+    el('div', { className: 'text-sm font-bold uppercase tracking-widest text-teal mb-2' }, '5. Modul'),
+    el('h1', { className: 'font-display text-4xl font-bold text-navy mb-3' }, 'A te Stratégiai Fókusz Térképed'),
+    el('p', { className: 'text-lg text-slate leading-relaxed' }, 'Egy oldal, amit kinyomtathatsz vagy letölthetsz PDF-ben. Tartsd szem előtt a következő 7 napban.'),
+  ));
+
+  // 1. Fókusz Térkép ELŐSZÖR (siker-moment: "Nézd meg, mit építettél!")
+  root.appendChild(el('div', { className: 'mb-3 flex items-center gap-2 no-print' },
+    el('div', { className: 'text-xs font-bold uppercase tracking-widest', style: { color: '#0E7490' } }, '👁️ Előnézet'),
+    el('div', { className: 'flex-1 border-t', style: { borderColor: '#E6E3D8' } }),
+  ));
+  root.appendChild(buildFocusMap(false));
+
+  // 2. Zárógondolatok (reflection) ALATTA, blur-on frissül a térkép
+  const reflCard = el('div', { className: 'card mb-6 mt-6', style: { borderLeft: '4px solid #E6B450' } });
+  reflCard.appendChild(el('h3', { className: 'font-bold text-navy mb-2 text-lg' }, '✍️ Zárógondolatok'));
+  reflCard.appendChild(el('p', { className: 'text-sm text-slate mb-4' }, 'Ezek a szövegek bekerülnek a térkép aljára, mielőtt exportálod.'));
+  reflCard.appendChild(el('div', { className: 'mb-4' },
+    el('label', { className: 'block text-sm font-semibold text-navy mb-2' }, 'A legnagyobb felismerésem ma:'),
+    el('textarea', { className: 'textarea', rows: '2',
+      placeholder: 'pl. Rádöbbentem, hogy heti 15 órát viszek el adminisztrációra, amit régen el kellett volna engednem.',
+      oninput: (e) => { state.reflection.biggestInsight = e.target.value; save(); },
+      onblur: () => render(),
+    }, state.reflection.biggestInsight || ''),
+  ));
+  reflCard.appendChild(el('div', { className: 'mb-2' },
+    el('label', { className: 'block text-sm font-semibold text-navy mb-2' }, 'Mit engedek el vagy fordítok meg már EZEN A HÉTEN? (1 konkrét dolog)'),
+    el('textarea', { className: 'textarea', rows: '2',
+      placeholder: 'pl. A pénteki reviewt delegálom Péternek, és csak lezárásban hallgatom meg.',
+      oninput: (e) => { state.commitment = e.target.value; save(); },
+      onblur: () => render(),
+    }, state.commitment || ''),
+  ));
+  root.appendChild(reflCard);
+
+  // 3. Akciógombok legalul
+  const actionBar = el('div', { className: 'flex gap-3 flex-wrap justify-center mt-8 no-print' });
+  actionBar.appendChild(el('button', { className: 'btn-gold', onclick: exportPDF }, '⬇ Letöltés PDF-ben'));
+  actionBar.appendChild(el('button', { className: 'btn-secondary', onclick: () => window.print() }, '🖨 Nyomtatás'));
+  actionBar.appendChild(el('button', { className: 'btn-secondary', onclick: () => navigate('planner') }, '← Módosítok'));
+  root.appendChild(actionBar);
+
+  root.appendChild(el('div', { className: 'mt-8 text-center text-sm text-slate no-print' },
+    '💡 A következő workshop alkalomra hozd magaddal ezt a PDF-et és 1 hét időnapló adatot.',
+  ));
+  return root;
+}
+
+function buildFocusMap(forPDF = false) {
+  const eh = eisenhowerShare();
+  const t = totalHours();
+  const q1 = state.activities.filter(a => a.urgent && a.important);
+  const q2 = state.activities.filter(a => !a.urgent && a.important);
+  const q3 = state.activities.filter(a => a.urgent && !a.important);
+  const q4 = state.activities.filter(a => !a.urgent && !a.important);
+  const byDecision = id => state.activities.filter(a => a.decision === id);
+
+  const wrap = el('div', { className: `focus-map bg-white rounded-2xl shadow-xl p-8 ${forPDF ? '' : 'mb-6'}`, id: 'focus-map', style: { borderTop: '4px solid #E6B450' } });
+
+  wrap.appendChild(el('div', { className: 'flex items-start justify-between mb-6 pb-4', style: { borderBottom: '2px solid #E6B450' } },
+    el('div', {},
+      el('div', { className: 'text-xs uppercase tracking-widest text-slate font-bold' }, 'STRATÉGIAI FÓKUSZ TÉRKÉP'),
+      el('h2', { className: 'font-display text-3xl font-bold text-navy mt-1' }, state.user.name || 'Vezető'),
+      state.user.company ? el('div', { className: 'text-slate text-sm mt-0.5' }, state.user.company) : null,
+    ),
+    el('div', { className: 'text-right' },
+      el('div', { className: 'text-xs text-slate' }, new Date(state.user.date).toLocaleDateString('hu-HU')),
+      el('div', { className: 'text-xs font-bold mt-1', style: { color: '#E6B450' } }, '🧭 Focus Compass'),
+    ),
+  ));
+
+  // Eisenhower top row
+  wrap.appendChild(el('div', { className: 'mb-6' },
+    el('h3', { className: 'font-bold text-navy text-sm uppercase tracking-wider mb-3' }, '⏳ Időmérleg – Eisenhower arányok'),
+    el('div', { className: 'grid grid-cols-4 gap-3' },
+      quickStat('Q1 Tüzek', eh.q1 + '%', '#991B1B'),
+      quickStat('Q2 Stratégia', eh.q2 + '%', '#166534'),
+      quickStat('Q3 Zaj', eh.q3 + '%', '#92400E'),
+      quickStat('Q4 Időveszt.', eh.q4 + '%', '#4B5563'),
+    ),
+    el('div', { className: 'text-xs text-slate text-right mt-2' }, `Összesen: ${t} óra / hét`),
+  ));
+
+  // Eisenhower mini
+  wrap.appendChild(el('div', { className: 'mb-6' },
+    el('h3', { className: 'font-bold text-navy text-sm uppercase tracking-wider mb-3' }, '📐 Eisenhower kvadránsok'),
+    el('div', { className: 'grid grid-cols-2 gap-3' },
+      miniQuad('Q1 Tüzek', q1, '#FEE2E2', '#991B1B'),
+      miniQuad('Q2 Stratégia', q2, '#DCFCE7', '#166534'),
+      miniQuad('Q3 Zaj', q3, '#FEF3C7', '#92400E'),
+      miniQuad('Q4 Időveszt.', q4, '#F3F4F6', '#4B5563'),
+    ),
+  ));
+
+  // Top 3 focus
+  const fList = state.focusAreas.filter(f => f.title && f.title.trim());
+  if (fList.length > 0) {
+    wrap.appendChild(el('div', { className: 'mb-6' },
+      el('h3', { className: 'font-bold text-navy text-sm uppercase tracking-wider mb-3' }, '⭐ Stratégiai fókusz – következő 90 nap'),
+      ...fList.map((f, i) => el('div', { className: 'mb-2 rounded-xl p-4', style: { background: '#FBF9F1', borderLeft: '4px solid #E6B450' } },
+        el('div', { className: 'flex gap-3 items-start' },
+          el('div', { className: 'w-7 h-7 rounded-lg flex items-center justify-center font-bold flex-shrink-0', style: { background: '#E6B450', color: '#0B2447' } }, i + 1),
+          el('div', { className: 'flex-1' },
+            el('div', { className: 'font-bold text-navy' }, f.title),
+            f.why ? el('div', { className: 'text-sm text-slate mt-1 italic' }, f.why) : null,
+          ),
+        ),
+      )),
+    ));
+  }
+
+  // 5D decisions
+  const decStats = DECISIONS.map(d => ({ ...d, items: byDecision(d.id), hours: byDecision(d.id).reduce((s, a) => s + (Number(a.hours) || 0), 0) }));
+  const anyDec = decStats.some(d => d.items.length > 0);
+  if (anyDec) {
+    wrap.appendChild(el('div', { className: 'mb-6' },
+      el('h3', { className: 'font-bold text-navy text-sm uppercase tracking-wider mb-3' }, '🎚️ 5D akcióterv'),
+      el('div', { className: 'grid gap-2' },
+        ...decStats.filter(d => d.items.length > 0).map(d => el('div', { className: 'rounded-xl p-3', style: { background: '#FBF9F1', border: '1px solid #EDE9D9' } },
+          el('div', { className: 'flex items-center gap-2 mb-1 flex-wrap' },
+            el('span', { className: `decision-pill ${d.cls}` }, `${d.emoji} ${d.label}`),
+            el('span', { className: 'text-sm font-bold text-navy' }, d.hu),
+            el('span', { className: 'text-xs text-slate' }, `· ${d.items.length} feladat · ${d.hours} ó/hét`),
+          ),
+          el('div', { className: 'text-sm text-navy mt-1' }, d.items.map(a => a.name).join(' · ')),
+        )),
+      ),
+    ));
+  }
+
+  if (state.reflection.biggestInsight) {
+    wrap.appendChild(el('div', { className: 'rounded-xl p-4 mb-3', style: { background: '#0B2447', color: 'white' } },
+      el('div', { className: 'text-xs uppercase tracking-wider font-bold mb-1', style: { color: '#E6B450' } }, 'A legnagyobb felismerésem'),
+      el('div', { className: 'text-sm leading-relaxed italic' }, '„' + state.reflection.biggestInsight + '"'),
+    ));
+  }
+  if (state.commitment) {
+    wrap.appendChild(el('div', { className: 'rounded-xl p-4', style: { background: 'linear-gradient(135deg, #E6B450, #F9B572)', color: '#0B2447' } },
+      el('div', { className: 'text-xs uppercase tracking-wider font-bold mb-1' }, '🎯 1 hetes elköteleződésem'),
+      el('div', { className: 'text-sm font-semibold' }, state.commitment),
+    ));
+  }
+
+  wrap.appendChild(el('div', { className: 'mt-6 pt-4 text-center text-xs text-slate', style: { borderTop: '1px solid #EDE9D9' } }, 'Focus Compass · Operatív káoszból a stratégiai fókuszba · Workshop 1. alkalom'));
+  return wrap;
+}
+function quickStat(label, value, color) {
+  return el('div', { className: 'rounded-xl p-3 text-center', style: { background: '#FBF9F1', border: `2px solid ${color}40` } },
+    el('div', { className: 'text-2xl font-bold', style: { color } }, value),
+    el('div', { className: 'text-xs text-slate mt-0.5' }, label),
+  );
+}
+function miniQuad(label, items, bg, color) {
+  const h = items.reduce((s, a) => s + (Number(a.hours) || 0), 0);
+  return el('div', { className: 'rounded-xl p-3', style: { background: bg } },
+    el('div', { className: 'flex items-center justify-between mb-1' },
+      el('div', { className: 'text-xs font-bold uppercase tracking-wider', style: { color } }, label),
+      el('div', { className: 'text-xs font-bold', style: { color } }, `${h} ó`),
+    ),
+    el('div', { className: 'text-xs leading-tight', style: { color } }, items.length > 0 ? items.map(a => '• ' + a.name).join(' ') : '—'),
+  );
+}
+
+// ====================== PDF EXPORT ======================
+async function exportPDF() {
+  const btn = document.activeElement;
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Generálás...'; }
+  const container = document.getElementById('pdf-export');
+  container.innerHTML = '';
+  const map = buildFocusMap(true);
+  map.style.width = '780px';
+  map.style.padding = '32px';
+  container.appendChild(map);
+  try {
+    const canvas = await html2canvas(map, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'px', format: 'a4', orientation: 'portrait' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const ratio = canvas.width / canvas.height;
+    let w = pageW - 40; let h = w / ratio;
+    if (h > pageH - 40) { h = pageH - 40; w = h * ratio; }
+    pdf.addImage(imgData, 'PNG', (pageW - w) / 2, 20, w, h);
+    const fname = `fokusz-terkep-${(state.user.name || 'vezeto').replace(/\s+/g, '-').toLowerCase()}-${state.user.date}.pdf`;
+    pdf.save(fname);
+    showToast(`✓ Letöltve: ${fname}`, 'success', 4000);
+  } catch (e) {
+    showToast('❌ PDF generálás hiba: ' + e.message, 'error', 5000);
+  } finally {
+    container.innerHTML = '';
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
+  }
+}
+
+// ====================== RENDER ======================
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  app.appendChild(Header());
+  const main = el('main', {});
+  if (state.screen === 'welcome')  main.appendChild(WelcomeScreen());
+  else if (state.screen === 'tasks')   main.appendChild(TasksScreen());
+  else if (state.screen === 'time')    main.appendChild(TimeScreen());
+  else if (state.screen === 'matrix')  main.appendChild(MatrixScreen());
+  else if (state.screen === 'planner') main.appendChild(PlannerScreen());
+  else if (state.screen === 'summary') main.appendChild(SummaryScreen());
+  app.appendChild(main);
+  app.appendChild(el('footer', { className: 'no-print text-center py-6 text-xs text-slate' },
+    el('div', {},
+      'Adataid lokálisan, a böngésződben maradnak. · ',
+      el('a', { href: '#', className: 'underline', onclick: (e) => { e.preventDefault(); reset(); } }, 'Újrakezdés'),
+      el('span', { className: 'ml-2 font-semibold', style: { color: '#E6B450' } }, '· v2.8'),
+    ),
+    el('div', { className: 'mt-2 font-semibold text-navy' }, '© Diamond Coaching & Development Kft. 2026'),
+  ));
+}
+
+load();
+render();
+</script>
+</body>
+</html>
